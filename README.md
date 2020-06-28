@@ -1,0 +1,87 @@
+
+# Ilias Downloader UniMA (ilias.uni-mannheim.de)
+
+A simple python package to download files from https://ilias.uni-mannheim.de.
+
+## Key features
+
+- Automatically synchronizes all files for each download. Only new or updated files will be downloaded.
+- Uses the [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) package to accelerate the download.
+
+## Install
+
+Easy way via pip:
+
+```bash
+pip install iliasDownloaderUniMA
+```
+
+or clone this repo and then run
+
+``` bash
+python3 setup.py install 
+```
+
+inside the cloned directory.
+
+## Usage
+
+Besides the uni-id and the password, only the ref id is required to download
+the files for a course. In general, a simple download script looks like this:
+
+```python
+import IliasDownloaderUniMA
+
+m = IliasDownloaderUniMA()
+m.setParam('download_path', '/path/where/you/want/your/files/')
+m.login('your_uni_id', 'your_password')
+m.addCourse(ilias_course1_ref_id)
+m.addCourse(ilias_course2_ref_id)
+m.downloadAllFiles()
+```
+
+A more specific example:
+
+```python
+import IliasDownloaderUniMA
+
+m = IliasDownloaderUniMA()
+m.setParam('download_path', '/Users/jonathan/Desktop/')
+m.login('jhelgert', 'my_password')
+m.addCourse(954265)   # OPM 601 Supply Chain Management
+m.addCourse(965389)   # BE 511 Business Economics II
+m.downloadAllFiles()
+```
+
+### Where to get the ilias_course_ref_id?
+
+![](https://i.imgur.com/1MKl9un.png)
+
+### Parameters
+
+The Parameters can be set by the `.setParam(param, value)` method, where
+`param` is one of the following parameters:
+
+- `num_scan_threads` number of threads used for scanning for files
+inside the folders (default: 10).
+- `num_download_threads` number of threads used for download all files (default: 10).
+- `download_path` the path all the files will be downloaded to (default: the current working directory).
+
+
+```python
+import IliasDownloaderUniMA
+
+m = IliasDownloaderUniMA()
+m.setParam('download_path', '/Users/jonathan/Desktop/')
+m.setParam('num_scan_threads', 20)
+m.setParam('num_download_threads', 20)
+m.login('jhelgert', 'my_password')
+m.addCourse(954265)   # OPM 601 Supply Chain Management
+m.addCourse(965389)   # BE 511 Business Economics II
+m.downloadAllFiles()
+```
+
+
+## Contribute
+
+Feel free to contribute! :)

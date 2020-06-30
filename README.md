@@ -30,7 +30,7 @@ Besides the uni-id and the password, only the ref id is required to download
 the files for a course. In general, a simple download script looks like this:
 
 ```python
-import IliasDownloaderUniMA
+from IliasDownloaderUniMA import IliasDownloaderUniMA
 
 m = IliasDownloaderUniMA()
 m.setParam('download_path', '/path/where/you/want/your/files/')
@@ -43,7 +43,7 @@ m.downloadAllFiles()
 A more specific example:
 
 ```python
-import IliasDownloaderUniMA
+from IliasDownloaderUniMA import IliasDownloaderUniMA
 
 m = IliasDownloaderUniMA()
 m.setParam('download_path', '/Users/jonathan/Desktop/')
@@ -69,7 +69,7 @@ inside the folders (default: 5).
 
 
 ```python
-import IliasDownloaderUniMA
+from IliasDownloaderUniMA import IliasDownloaderUniMA
 
 m = IliasDownloaderUniMA()
 m.setParam('download_path', '/Users/jonathan/Desktop/')

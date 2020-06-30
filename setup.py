@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
 	name="IliasDownloaderUniMA",
-	version='0.0.2',
+	version='0.1',
 	packages=['IliasDownloaderUniMA'],
 	author='Jonathan Helgert',
 	author_email='jhelgert@mail.uni-mannheim.de',

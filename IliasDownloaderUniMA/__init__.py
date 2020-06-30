@@ -11,14 +11,6 @@ import math
 import os	
 import shutil
 import re
-from pprint import pprint
-
-##### TO DO
-#
-##
-## Dokumentation der einzelnen Methoden
-## Login check
-## README erweitern
 
 class IliasDownloaderUniMA():
 	"""

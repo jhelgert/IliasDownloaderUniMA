@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from requests import session, get
+from requests import session, get, ConnectionError
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathlib import Path as plPath
@@ -11,6 +11,7 @@ import math
 import os	
 import shutil
 import re
+from pprint import pprint
 
 ##### TO DO
 #
@@ -31,12 +32,11 @@ class IliasDownloaderUniMA():
 		Constructs a new instance.
 		"""
 		self.courses = []
-		self.folders_to_scan = []
-		self.tasks_to_scan = []
+		self.to_scan = []
 		self.files = []
-		self.params = {'num_scan_threads' : 10, 'num_download_threads': 10, 'download_path': os.getcwd()}
+		self.params = {'num_scan_threads' : 5, 'num_download_threads': 5, 'download_path': os.getcwd()}
 		self.session = None
-		self.soup = None
+		self.login_soup = None
 
 
 	def setParam(self, param, value):
@@ -95,14 +95,14 @@ class IliasDownloaderUniMA():
 			'Connection': 'keep-alive',
 		}
 		self.session = session()
-		self.soup = BeautifulSoup(self.session.get("https://cas.uni-mannheim.de/cas/login").content, "lxml")
-		form_data = self.soup.select('form[action^="/cas/login"] input')
+		self.login_soup = BeautifulSoup(self.session.get("https://cas.uni-mannheim.de/cas/login").content, "lxml")
+		form_data = self.login_soup.select('form[action^="/cas/login"] input')
 		data.update({inp["name"]: inp["value"] for inp in form_data if inp["name"] not in data})
 		self.session.post('https://cas.uni-mannheim.de/cas/login', data=data, headers=head)
-
-
-	def checkLogin(self, soup):
-		pass # To do
+		self.login_soup = BeautifulSoup(self.session.get(self.base_url).content, "lxml")
+		# Login successful? FIY
+		if not self.login_soup.find("a", {'id' : 'mm_desktop'}):
+			raise ConnectionError("Couldn't log into ILIAS. Make sure your provided uni-id and the password are correct.")
 
 
 	def addCourse(self, iliasid):
@@ -147,7 +147,7 @@ class IliasDownloaderUniMA():
 		today = datetime.now()
 		gestern = today.replace(day = today.day-1).strftime("%d. %b %Y")
 		d = {"Mär": "Mar", "Mai": "May", "Jun": "Jun", "Jul": "Jul", "Okt": "Oct", "Dez": "Dec",
-		"Gestern": gestern, "Heute": today.strftime("%d. %b %Y")}
+		"Gestern": gestern, 'yesterday': gestern, "Heute": today.strftime("%d. %b %Y"), "today": today.strftime("%d. %b %Y")}
 		for key in d.keys():
 			datestr = datestr.replace(key, d[key])
 		return datestr
@@ -167,7 +167,7 @@ class IliasDownloaderUniMA():
 	def _parseFileProperties(self, bs_item):
 		p = bs_item.find_all('span', 'il_ItemProperty')
 		file_ending = p[0].get_text().split()[0]
-		file_size_tmp = p[1].get_text().replace(",", ".").split()
+		file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
 		file_size = float(file_size_tmp[0])
 		if file_size_tmp[1] == "KB":
 			file_size *= 1e-3
@@ -183,56 +183,75 @@ class IliasDownloaderUniMA():
 		:type       args:  list
 		"""
 
-		if len(self.folders_to_scan) > 0:
-			self.folders_to_scan.pop()
 		url = urljoin(self.base_url, url_to_scan)
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		file_path = course_name + "/" +  "/".join(soup.find("body").find("ol").text.split("\n")[-2]) + "/"
+		file_path = course_name + "/" +  "/".join(soup.find("body").find("ol").text.split("\n")[4:-1]) + "/"
+		#items = soup.find("div", {"id": "bl_cntr_1"}).find_all("div", "il_ContainerListItem")
 		items = soup.find_all("div", "il_ContainerListItem")
 		for i in items:
 			subitem = i.find('a', href=True)
-			el_url =  subitem['href']
+			if not subitem:
+				continue
+			el_url =  urljoin(self.base_url, subitem['href'])
 			el_name = subitem.get_text()
 			el_type = self._determineItemType(el_url)
 			if el_type == "file":
 				file_ending, file_size, file_mod_date = self._parseFileProperties(i)
 				el_name += "." + file_ending
-				self.files += [{'course': course_name, 'type': el_type, \
+				self.files += [{
+					'course': course_name, 
+					'type': el_type, \
 					'name': el_name, \
 					'size': file_size, \
 					'mod-date': file_mod_date, \
 					'url': el_url, \
 					'path': file_path}]
-			elif el_type == "folder":
-				self.folders_to_scan += [{'type': el_type, 'name': el_name, 'url': el_url}]
-			elif el_type == 'task':
-				self.tasks_to_scan += [{'type' : el_type, 'name': el_name, 'url': el_url}]
+			elif el_type == "folder" or el_type == "task":
+				self.to_scan += [{'type': el_type, 'name': el_name, 'url': el_url}]
 
 
-	def searchFolderForFiles(self, course_name):
+	def scanTaskUnit(self, course_name, url_to_scan):
+		url = urljoin(self.base_url, url_to_scan)
+		soup = BeautifulSoup(self.session.get(url).content, "lxml")
+		task_unit_name = soup.find("a", {"class" : "ilAccAnchor"}).get_text()  
+		file_path = course_name + "/" + "Aufgaben/" + task_unit_name + "/"
+		task_items = soup.find("div", {"id":"infoscreen_section_1"}).find_all("div", "form-group")
+		for i in task_items:
+			el_url = urljoin(self.base_url, i.find('a')['href'])
+			el_name = i.find("div", 'il_InfoScreenProperty').get_text()
+			el_type = 'file'
+			file_mod_date = datetime.fromisoformat('2000-01-01')
+			file_size = math.nan
+			self.files += [{
+				'course': course_name,
+				'type': el_type,
+				'name': el_name,
+				'size': file_size,
+				'mod-date': file_mod_date,
+				'url': el_url,
+				'path': file_path}]
+
+	def scanHelper(self, course_name, el):
+		if len(self.to_scan) > 0:
+			self.to_scan.pop()
+		if el['type'] == "folder":
+			self.scanFolder(course_name, el['url'])
+		elif el['type'] == "task":
+			self.scanTaskUnit(course_name, el['url'])
+
+
+
+	def searchForFiles(self, course_name):
 		"""
 		Scans an ilias url and all nested subfolders for files
 	
 		:param      arg:  url for the "dateien" folder
 		:type       arg:  str
 		"""
-		while len(self.folders_to_scan) > 0:
-			results = ThreadPool(self.params['num_scan_threads']).imap_unordered(lambda x: self.scanFolder(course_name, x['url']), self.folders_to_scan)
+		while len(self.to_scan) > 0:
+			results = ThreadPool(self.params['num_scan_threads']).imap_unordered(lambda x: self.scanHelper(course_name, x), self.to_scan)
 			for r in results:
 				pass
-
-	def scanTaskUnit(self, task_unit_name, url_to_scan):
-		if len(self.tasks_to_scan) > 0:
-			self.tasks_to_scan.pop()
-		url = urljoin(self.base_url, url_to_scan)
-		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		file_path = task_unit_name + "/"
-		task_items = soup.find_all("div", {"id":"infoscreen_section_1"})[0].find_all("div", "form-group")
-		for i in task_items:
-			el_url = i.find('a')['href']
-			el_name = i.find("div", 'il_InfoScreenProperty').get_text()
-			file_mod_date = ...
-			file_size = math.nan
 
 
 
@@ -242,9 +261,9 @@ class IliasDownloaderUniMA():
 		"""
 
 		for course in self.courses:
-			self.folders_to_scan += [{'type' : 'folder', 'name': course['name'], 'url': course['url']}]
+			self.to_scan += [{'type' : 'folder', 'name': course['name'], 'url': course['url']}]
 			print(f"Scanning {course['name']} with {self.params['num_scan_threads']} Threads....")
-			self.searchFolderForFiles(course['name'])
+			self.searchForFiles(course['name'])
 			
 			
 	def downloadFile(self, file):
@@ -291,4 +310,3 @@ class IliasDownloaderUniMA():
 		# Download all files
 		for r in ThreadPool(self.params['num_download_threads']).imap_unordered(self.downloadFile, self.files):
 			pass
-

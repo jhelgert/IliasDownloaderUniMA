@@ -13,16 +13,16 @@ A simple python package to download files from https://ilias.uni-mannheim.de.
 Easy way via pip:
 
 ```bash
-pip install iliasDownloaderUniMA
+pip3 install iliasDownloaderUniMA
 ```
 
-or clone this repo and then run
+Otherwise you can clone or download this repo and then run
 
 ``` bash
 python3 setup.py install 
 ```
 
-inside the cloned directory.
+inside the repo directory.
 
 ## Usage
 

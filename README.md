@@ -1,5 +1,5 @@
 
-# Ilias Downloader UniMA (ilias.uni-mannheim.de)
+# Ilias Downloader UniMA
 
 A simple python package to download files from https://ilias.uni-mannheim.de.
 

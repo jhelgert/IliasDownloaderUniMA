@@ -1,5 +1,5 @@
 
-# Ilias Downloader UniMA (ilias.uni-mannheim.de)
+# Ilias Downloader UniMA
 
 A simple python package to download files from https://ilias.uni-mannheim.de.
 
@@ -63,8 +63,8 @@ The Parameters can be set by the `.setParam(param, value)` method, where
 `param` is one of the following parameters:
 
 - `num_scan_threads` number of threads used for scanning for files
-inside the folders (default: 10).
-- `num_download_threads` number of threads used for download all files (default: 10).
+inside the folders (default: 5).
+- `num_download_threads` number of threads used for download all files (default: 5).
 - `download_path` the path all the files will be downloaded to (default: the current working directory).
 
 

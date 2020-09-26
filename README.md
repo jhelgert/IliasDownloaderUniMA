@@ -53,6 +53,15 @@ m.addCourse(965389)   # BE 511 Business Economics II
 m.downloadAllFiles()
 ```
 
+Note that the backslash `\` is a special character inside a python string.
+So on a windows machine it's necessary to use a raw string for the `download_path`:
+
+```python
+m.setParam('download_path', r'C:\Users\jonathan\Desktop\')
+```
+
+
+
 ### Where to get the ilias_course_ref_id?
 
 ![](https://i.imgur.com/1MKl9un.png)

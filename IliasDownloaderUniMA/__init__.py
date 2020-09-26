@@ -153,6 +153,8 @@ class IliasDownloaderUniMA():
 			return "forum"
 		elif "showOverview" in url:
 			return "task"
+		elif "ilHTLMPresentationGUI" in url:
+			return "lernmaterialien"
 		else:
 			return "folder"
 
@@ -178,6 +180,7 @@ class IliasDownloaderUniMA():
 		url = urljoin(self.base_url, url_to_scan)
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
 		file_path = course_name + "/" +  "/".join(soup.find("body").find("ol").text.split("\n")[4:-1]) + "/"
+		file_path = file_path.replace(":", " - ")
 		#items = soup.find("div", {"id": "bl_cntr_1"}).find_all("div", "il_ContainerListItem")
 		items = soup.find_all("div", "il_ContainerListItem")
 		for i in items:
@@ -200,6 +203,8 @@ class IliasDownloaderUniMA():
 					'path': file_path}]
 			elif el_type == "folder" or el_type == "task":
 				self.to_scan += [{'type': el_type, 'name': el_name, 'url': el_url}]
+			elif el_type == "lernmaterialien":
+				self.to_scan += [{'type': el_type, 'name' : el_name, 'url': el_url}]
 
 
 	def scanTaskUnit(self, course_name, url_to_scan):
@@ -223,14 +228,20 @@ class IliasDownloaderUniMA():
 				'url': el_url,
 				'path': file_path}]
 
+	def scanLernmaterial(self, course_name, url_to_scan):
+		pass
+		# ... to do ...
+
+
 	def scanHelper(self, course_name, el):
 		if len(self.to_scan) > 0:
 			self.to_scan.pop()
 		if el['type'] == "folder":
 			self.scanFolder(course_name, el['url'])
-		elif el['type'] == "task":
+		if el['type'] == "task":
 			self.scanTaskUnit(course_name, el['url'])
-
+		#elif el['type'] == 'lernmaterialien':
+		#	self.scanLernmaterial(course_name, el['url'])
 
 
 	def searchForFiles(self, course_name):

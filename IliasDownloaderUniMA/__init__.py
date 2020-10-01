@@ -137,16 +137,7 @@ class IliasDownloaderUniMA():
 		"""
 
 		today = datetime.now()
-
-		if today.day-1 == 0 & today.month-1 in [1,3,5,7,8,10,12]:
-			gestern = today.replace(day = 31).strftime("%d. %b %Y")
-		elif today.day-1 == 0 & today.month-1 not in [1,3,5,7,8,10,12]:
-			gestern = today.replace(day = 30).strftime("%d. %b %Y")
-		elif today.day-1 == 0 & today.month-1 == 2:
-			gestern = today.replace(day = 28).strftime("%d. %b %Y")
-		else:
-			gestern = today.replace(day = today.day-1).strftime("%d. %b %Y")
-			
+	gestern = (today - timedelta(1)).strftime("%d. %b %Y")		
 		d = {"Mär": "Mar", "Mai": "May", "Jun": "Jun", "Jul": "Jul", "Okt": "Oct", "Dez": "Dec",
 		"Gestern": gestern, 'yesterday': gestern, "Heute": today.strftime("%d. %b %Y"), "today": today.strftime("%d. %b %Y")}
 		for key in d.keys():

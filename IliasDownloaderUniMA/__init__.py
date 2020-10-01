@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathlib import Path as plPath
 from dateutil.parser import parse as parsedate
-from datetime import datetime
+from datetime import datetime, timedelta
 from multiprocessing.pool import ThreadPool
 import math
 import os	
@@ -137,7 +137,7 @@ class IliasDownloaderUniMA():
 		"""
 
 		today = datetime.now()
-		gestern = today.replace(day = today.day-1).strftime("%d. %b %Y")
+	gestern = (today - timedelta(1)).strftime("%d. %b %Y")		
 		d = {"Mär": "Mar", "Mai": "May", "Jun": "Jun", "Jul": "Jul", "Okt": "Oct", "Dez": "Dec",
 		"Gestern": gestern, 'yesterday': gestern, "Heute": today.strftime("%d. %b %Y"), "today": today.strftime("%d. %b %Y")}
 		for key in d.keys():

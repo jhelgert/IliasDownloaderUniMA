@@ -4,8 +4,8 @@ from requests import session, get, ConnectionError
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathlib import Path as plPath
-from dateutil.parser import parse as parsedate
-from datetime import datetime
+from dateutil.parser import parse 
+from datetime import datetime, timedelta
 from multiprocessing.pool import ThreadPool
 import math
 import os	

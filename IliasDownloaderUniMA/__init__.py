@@ -181,7 +181,22 @@ class IliasDownloaderUniMA():
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
 		file_path = course_name + "/" +  "/".join(soup.find("body").find("ol").text.split("\n")[4:-1]) + "/"
 		file_path = file_path.replace(":", " - ")
-		#items = soup.find("div", {"id": "bl_cntr_1"}).find_all("div", "il_ContainerListItem")
+		videos = soup.find_all("figure", {"class": "ilc_media_cont_MediaContainer"})
+		for v in videos:
+			el_url = urljoin(self.base_url, v.find('source')['src'])
+			el_name = v.find('div', {'class': 'ilc_media_caption_MediaCaption'}).get_text()
+			el_type = 'file'
+			file_ending = v.find('source')['type'].split("/")[-1]
+			file_size = math.nan
+			file_mod_date = datetime.fromisoformat('2000-01-01')
+			self.files += [{
+				'course': course_name, 
+				'type': el_type, \
+				'name': el_name + "." + file_ending, \
+				'size': file_size, \
+				'mod-date': file_mod_date, \
+				'url': el_url, \
+				'path': file_path}]
 		items = soup.find_all("div", "il_ContainerListItem")
 		for i in items:
 			subitem = i.find('a', href=True)

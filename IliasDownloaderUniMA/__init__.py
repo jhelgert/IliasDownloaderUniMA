@@ -165,7 +165,10 @@ class IliasDownloaderUniMA():
 		file_size = float(file_size_tmp[0])
 		if file_size_tmp[1] == "KB":
 			file_size *= 1e-3
-		file_mod_date = parsedate(self.translate_date(p[-1].get_text()), dayfirst=True)
+		if len(p) > 2:
+			file_mod_date = parsedate(self.translate_date(p[-1].get_text()), dayfirst=True)
+		else:
+			file_mod_date = datetime.fromisoformat('2000-01-01')
 		return file_ending, file_size, file_mod_date
 
 

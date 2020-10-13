@@ -26,7 +26,11 @@ class IliasDownloaderUniMA():
 		self.courses = []
 		self.to_scan = []
 		self.files = []
-		self.params = {'num_scan_threads' : 5, 'num_download_threads': 5, 'download_path': os.getcwd()}
+		self.params = {
+			'num_scan_threads' : 5, 
+			'num_download_threads': 5, 
+			'download_path': os.getcwd(),
+			'verbose' : False}
 		self.session = None
 		self.login_soup = None
 
@@ -44,8 +48,11 @@ class IliasDownloaderUniMA():
 		if param in ['num_scan_threads', 'num_download_threads']:
 			if type(value) is int:
 				self.params[param] = value
-		elif param == 'download_path':
+		if param == 'download_path':
 			if os.path.isdir(value):
+				self.params[param] = value
+		if param == 'verbose':
+			if type(value) is bool:
 				self.params[param] = value
 
 
@@ -165,8 +172,9 @@ class IliasDownloaderUniMA():
 		file_size = float(file_size_tmp[0])
 		if file_size_tmp[1] == "KB":
 			file_size *= 1e-3
+		p = [i for i in p if "Version" not in i.text]
 		if len(p) > 2:
-			file_mod_date = parsedate(self.translate_date(p[-1].get_text()), dayfirst=True)
+			file_mod_date = parsedate(self.translate_date(p[2].get_text()), dayfirst=True)
 		else:
 			file_mod_date = datetime.fromisoformat('2000-01-01')
 		return file_ending, file_size, file_mod_date
@@ -185,6 +193,9 @@ class IliasDownloaderUniMA():
 		file_path = course_name + "/" +  "/".join(soup.find("body").find("ol").text.split("\n")[4:-1]) + "/"
 		file_path = file_path.replace(":", " - ")
 		videos = soup.find_all("figure", {"class": "ilc_media_cont_MediaContainer"})
+		if self.params['verbose']:
+			print(f"Scanning Folder...\n{file_path}\n{url}")
+			print("-------------------------------------------------")
 		for v in videos:
 			el_url = urljoin(self.base_url, v.find('source')['src'])
 			el_name = v.find('div', {'class': 'ilc_media_caption_MediaCaption'}).get_text()
@@ -207,6 +218,7 @@ class IliasDownloaderUniMA():
 				continue
 			el_url =  urljoin(self.base_url, subitem['href'])
 			el_name = subitem.get_text()
+			#print(f"URL: {el_url}, Name: {el_name}")
 			el_type = self._determineItemType(el_url)
 			if el_type == "file":
 				file_ending, file_size, file_mod_date = self._parseFileProperties(i)
@@ -231,6 +243,9 @@ class IliasDownloaderUniMA():
 		task_unit_name = soup.find("a", {"class" : "ilAccAnchor"}).get_text()  
 		file_path = course_name + "/" + "Aufgaben/" + task_unit_name + "/"
 		task_items = soup.find("div", {"id":"infoscreen_section_1"}).find_all("div", "form-group")
+		if self.params['verbose']:
+			print(f"Scanning TaskUnit...\n{file_path}\n{url}")
+			print("-------------------------------------------------")
 		for i in task_items:
 			el_url = urljoin(self.base_url, i.find('a')['href'])
 			el_name = i.find("div", 'il_InfoScreenProperty').get_text()

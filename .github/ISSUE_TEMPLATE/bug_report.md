@@ -8,10 +8,10 @@ assignees: ''
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is. Please provide the course ref id for which the bug appears.
+A clear and concise description of what the bug is. Please provide the course ref id for which the bug appears **and** run your script in verbose mode, i.e. `m.setParam('verbose', True)`.
 
 ```python
-here you can copy the error-message
+Copy the whole output including the error message here
 ```
 
 **Expected behavior**

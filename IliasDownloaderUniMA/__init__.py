@@ -171,7 +171,7 @@ class IliasDownloaderUniMA():
 		file_size = float(file_size_tmp[0])
 		if file_size_tmp[1] == "KB":
 			file_size *= 1e-3
-		if file_size_tmp[1].lower() == "bytes":
+		elif file_size_tmp[1].lower() == "bytes":
 			file_size *= 1e-6
 		p = [i for i in p if "Version" not in i.text]
 		if len(p) > 2:

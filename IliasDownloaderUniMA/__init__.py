@@ -86,11 +86,7 @@ class IliasDownloaderUniMA():
 			raise TypeError("...")
 		data = {'username': login_id, 'password': login_pw}
 		head = {
-			'Accept-Encoding': 'gzip, deflate, sdch, br',
-			'Accept-Language': 'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4',
-			'Upgrade-Insecure-Requests': '1',
 			'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-			'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Connection': 'keep-alive',
 		}
 		self.session = session()
@@ -166,12 +162,17 @@ class IliasDownloaderUniMA():
 			return "folder"
 
 	def _parseFileProperties(self, bs_item):
-		p = bs_item.find_all('span', 'il_ItemProperty')
-		file_ending = p[0].get_text().split()[0]
+		p = [i for i in bs_item.find_all('span', 'il_ItemProperty') if len(i.text) > 0]
+		if len(p[0].text.split()) > 1:
+			file_ending = ""
+		else:
+			file_ending = "." + p[0].get_text().split()[0]
 		file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
 		file_size = float(file_size_tmp[0])
 		if file_size_tmp[1] == "KB":
 			file_size *= 1e-3
+		if file_size_tmp[1].lower() == "bytes":
+			file_size *= 1e-6
 		p = [i for i in p if "Version" not in i.text]
 		if len(p) > 2:
 			file_mod_date = parsedate(self.translate_date(p[2].get_text()), dayfirst=True)
@@ -222,7 +223,7 @@ class IliasDownloaderUniMA():
 			el_type = self._determineItemType(el_url)
 			if el_type == "file":
 				file_ending, file_size, file_mod_date = self._parseFileProperties(i)
-				el_name += "." + file_ending
+				el_name += file_ending
 				self.files += [{
 					'course': course_name, 
 					'type': el_type, \

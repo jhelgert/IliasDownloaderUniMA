@@ -100,6 +100,15 @@ class IliasDownloaderUniMA():
 			raise ConnectionError("Couldn't log into ILIAS. Make sure your provided uni-id and the password are correct.")
 
 
+	def extractUserCourses(self):
+		"""
+		Extracts the users subscribed courses from the login_soup
+
+		:returns:   ref_id as key, title as value
+		:rtype:     dict
+		"""
+	
+
 	def addCourse(self, iliasid):
 		"""
 		Adds a course to the courses list.

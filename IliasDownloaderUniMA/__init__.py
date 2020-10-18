@@ -107,7 +107,17 @@ class IliasDownloaderUniMA():
 		:returns:   ref_id as key, title as value
 		:rtype:     dict
 		"""
-	
+
+		courses = {}
+
+		containers = self.login_soup.select("div.il_ContainerListItem")
+		for container in containers:
+			titleElem = container.select("a.il_ContainerItemTitle")[0]
+
+			title = titleElem.string
+			href = titleElem["href"]
+
+		return courses
 
 	def addCourse(self, iliasid):
 		"""

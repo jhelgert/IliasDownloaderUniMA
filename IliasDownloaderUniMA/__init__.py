@@ -73,6 +73,20 @@ class IliasDownloaderUniMA():
 		+ "&cmdNode=vi&baseClass=ilrepositorygui"
 
 
+	def extractIDFromURL(self, url):
+		"""
+		Extracts the ref_id from a given ilias url.
+
+		:param      url:  ilias url containing a ref id
+		:type       url:  str
+
+		:returns:	ref_id of given course or object
+		:rtype:     int
+
+		:raises:	ValueError:  when an url without a ref_id is given.
+		"""
+
+
 	def login(self, login_id, login_pw):
 		"""
 		create requests session and log into ilias.uni-mannheim.de

@@ -169,6 +169,31 @@ class IliasDownloaderUniMA():
 			self.addCourse(iliasid)
 
 
+	def addAllUserCourses(self, excluded_ids=[]):
+		"""
+		Extracts the users subscribed courses and adds them to the course list.
+
+		:param      excluded_ids:  optional ilias ids to ignore
+		:type       excluded_ids:  list
+
+		:returns:   number of courses added
+		:rtype:     int
+		"""
+
+		num_added = 0
+		courses = self.extractUserCourses()
+
+		for course in courses:
+			ref_id = course["ref_id"]
+
+			if ref_id not in excluded_ids:
+				print(ref_id)
+				self.addCourse(ref_id)
+				num_added += 1
+
+		return num_added
+
+
 	def translate_date(self, datestr):
 		"""
 		Translates a timestamp %d. %M %Y, %h:%m into an english one by only

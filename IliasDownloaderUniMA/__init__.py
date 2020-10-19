@@ -187,7 +187,6 @@ class IliasDownloaderUniMA():
 			ref_id = course["ref_id"]
 
 			if ref_id not in excluded_ids:
-				print(ref_id)
 				self.addCourse(ref_id)
 				num_added += 1
 

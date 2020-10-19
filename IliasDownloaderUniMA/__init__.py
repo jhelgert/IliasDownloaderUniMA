@@ -152,8 +152,11 @@ class IliasDownloaderUniMA():
 
 		url = self.createIliasUrl(iliasid)
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		course_name = soup.find_all("ol", "breadcrumb")[0].find_all('li')[2].get_text()
-		course_name = re.sub(r"\[.*\] ", "", course_name)
+		breadcrumb = soup.find_all("ol", "breadcrumb")[0]
+		# Course name is part of course link
+		course_elem = breadcrumb.find_all("a", href=re.compile("ref_id=" + str(iliasid)))[0]
+
+		course_name = re.sub(r"\[.*\] ", "", course_elem.get_text()).strip()
 		self.courses += [{'name' : course_name, 'url': url}]
 
 

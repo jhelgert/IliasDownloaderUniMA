@@ -75,20 +75,20 @@ class IliasDownloaderUniMA():
 
 	def extractIdFromUrl(self, url):
 		"""
-		Extracts the ref_id from a given ilias url.
+		Extracts the iliasid from a given ilias url.
 
 		:param      url:  ilias url containing a ref id
 		:type       url:  str
 
-		:returns:	ref_id of given course or object
+		:returns:	iliasid of given course or object
 		:rtype:     int
 
-		:raises:	ValueError:  when an url without a ref_id is given.
+		:raises:	ValueError:  when an url without a iliasid is given.
 		"""
 
 		match = re.search(r"ref_id=(\d+)", url)
 		if match == None:
-			raise ValueError("No ref_id in given URL")
+			raise ValueError("No iliasid in given URL")
 
 		return int(match.group(1))
 

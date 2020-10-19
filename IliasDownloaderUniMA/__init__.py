@@ -73,7 +73,7 @@ class IliasDownloaderUniMA():
 		+ "&cmdNode=vi&baseClass=ilrepositorygui"
 
 
-	def extractIDFromURL(self, url):
+	def extractIdFromUrl(self, url):
 		"""
 		Extracts the ref_id from a given ilias url.
 
@@ -85,6 +85,12 @@ class IliasDownloaderUniMA():
 
 		:raises:	ValueError:  when an url without a ref_id is given.
 		"""
+
+		match = re.search(r"ref_id=(\d+)", url)
+		if match == None:
+			raise ValueError("No ref_id in given URL")
+
+		return int(match.group(1))
 
 
 	def login(self, login_id, login_pw):

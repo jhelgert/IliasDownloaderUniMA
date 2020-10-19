@@ -124,20 +124,23 @@ class IliasDownloaderUniMA():
 		"""
 		Extracts the users subscribed courses from the login_soup
 
-		:returns:   ref_id as key, title as value
-		:rtype:     dict
+		:returns:   List of dicts, with keys name and ref_id
+		:rtype:     list
 		"""
 
-		courses = {}
+		courses = []
 
 		containers = self.login_soup.select("div.il_ContainerListItem")
 		for container in containers:
-			titleElem = container.select("a.il_ContainerItemTitle")[0]
+			title_elem = container.select("a.il_ContainerItemTitle")[0]
 
-			title = titleElem.string
-			href = titleElem["href"]
+			course_name = title_elem.string
+			ref_id = self.extractIdFromUrl(title_elem["href"])
+
+			courses += [{"name" : course_name, "ref_id": ref_id}]
 
 		return courses
+
 
 	def addCourse(self, iliasid):
 		"""

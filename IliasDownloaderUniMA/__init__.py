@@ -196,6 +196,20 @@ class IliasDownloaderUniMA():
 		return num_added
 
 
+	def cleanCourseName(self, course_name):
+		"""
+		Cleans up a course name to remove unwanted data.
+
+		:param      course_name:  raw course_name(from login_soup, or request)
+		:type       course_name:  str
+
+		:returns:   clean course name
+		:rtype:     str
+		"""
+
+		return re.sub(r"\[.*\] ", "", course_name).strip()
+
+
 	def translate_date(self, datestr):
 		"""
 		Translates a timestamp %d. %M %Y, %h:%m into an english one by only

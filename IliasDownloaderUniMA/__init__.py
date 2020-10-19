@@ -124,7 +124,7 @@ class IliasDownloaderUniMA():
 		"""
 		Extracts the users subscribed courses from the login_soup
 
-		:returns:   List of dicts, with keys name and ref_id
+		:returns:   List of dicts, with keys name, url and iliasid
 		:rtype:     list
 		"""
 
@@ -134,10 +134,11 @@ class IliasDownloaderUniMA():
 		for container in containers:
 			title_elem = container.select("a.il_ContainerItemTitle")[0]
 
-			ref_id = self.extractIdFromUrl(title_elem["href"])
 			course_name = self.cleanCourseName(title_elem.string)
+			iliasid = self.extractIdFromUrl(title_elem["href"])
 
-			courses += [{"name" : course_name, "ref_id": ref_id}]
+			url = self.createIliasUrl(iliasid)
+			courses += [{"name": course_name, "url": url, "iliasid": iliasid}]
 
 		return courses
 
@@ -157,7 +158,7 @@ class IliasDownloaderUniMA():
 		course_elem = breadcrumb.find_all("a", href=re.compile("ref_id=" + str(iliasid)))[0]
 
 		course_name = self.cleanCourseName(course_elem.get_text())
-		self.courses += [{'name' : course_name, 'url': url}]
+		self.courses += [{'name': course_name, 'url': url, 'iliasid': iliasid }]
 
 
 	def addCourses(self, *iliasids):
@@ -187,10 +188,10 @@ class IliasDownloaderUniMA():
 		courses = self.extractUserCourses()
 
 		for course in courses:
-			ref_id = course["ref_id"]
+			iliasid = course["iliasid"]
 
-			if ref_id not in excluded_ids:
-				self.addCourse(ref_id)
+			if iliasid not in excluded_ids:
+				self.addCourse(iliasid)
 				num_added += 1
 
 		return num_added

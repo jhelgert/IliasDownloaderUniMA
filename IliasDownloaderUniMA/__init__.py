@@ -134,8 +134,8 @@ class IliasDownloaderUniMA():
 		for container in containers:
 			title_elem = container.select("a.il_ContainerItemTitle")[0]
 
-			course_name = title_elem.string
 			ref_id = self.extractIdFromUrl(title_elem["href"])
+			course_name = self.cleanCourseName(title_elem.string)
 
 			courses += [{"name" : course_name, "ref_id": ref_id}]
 
@@ -156,7 +156,7 @@ class IliasDownloaderUniMA():
 		# Course name is part of course link
 		course_elem = breadcrumb.find_all("a", href=re.compile("ref_id=" + str(iliasid)))[0]
 
-		course_name = re.sub(r"\[.*\] ", "", course_elem.get_text()).strip()
+		course_name = self.cleanCourseName(course_elem.get_text())
 		self.courses += [{'name' : course_name, 'url': url}]
 
 

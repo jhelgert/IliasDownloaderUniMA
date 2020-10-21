@@ -282,8 +282,19 @@ class IliasDownloaderUniMA():
 			print(f"Scanning Folder...\n{file_path}\n{url}")
 			print("-------------------------------------------------")
 		for v in videos:
-			el_url = urljoin(self.base_url, v.find('source')['src'])
-			el_name = v.find('div', {'class': 'ilc_media_caption_MediaCaption'}).get_text()
+			v_url = v.find('source')['src']
+			el_caption = v.find('div', {'class': 'ilc_media_caption_MediaCaption'})
+			if el_caption != None:
+				el_name = el_caption.get_text()
+			else:
+				# Get lowest folder
+				el_name = os.path.basename(v_url)
+				# Remove url arguments
+				el_name = el_name.split("?")[0]
+				# Remove stock extension
+				el_name = os.path.splitext(el_name)[0]
+
+			el_url = urljoin(self.base_url, v_url)
 			el_type = 'file'
 			file_ending = v.find('source')['type'].split("/")[-1]
 			file_size = math.nan

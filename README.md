@@ -53,6 +53,19 @@ m.addCourse(965389)   # BE 511 Business Economics II
 m.downloadAllFiles()
 ```
 
+If you want to download all your courses without adding their ref ids 
+manually you can do it this way:
+
+```python
+from IliasDownloaderUniMA import IliasDownloaderUniMA
+
+m = IliasDownloaderUniMA()
+m.setParam('download_path', '/Users/jonathan/Desktop/')
+m.login('jhelgert', 'my_password')
+m.addAllUserCourses()
+m.downloadAllFiles()
+```
+
 Note that the backslash `\` is a special character inside a python string.
 So on a windows machine it's necessary to use a raw string for the `download_path`:
 

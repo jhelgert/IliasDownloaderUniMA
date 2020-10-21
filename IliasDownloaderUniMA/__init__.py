@@ -247,21 +247,28 @@ class IliasDownloaderUniMA():
 
 	def _parseFileProperties(self, bs_item):
 		p = [i for i in bs_item.find_all('span', 'il_ItemProperty') if len(i.text) > 0]
+
 		if len(p[0].text.split()) > 1:
 			file_ending = ""
 		else:
 			file_ending = "." + p[0].get_text().split()[0]
-		file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
-		file_size = float(file_size_tmp[0])
-		if file_size_tmp[1] == "KB":
-			file_size *= 1e-3
-		elif file_size_tmp[1].lower() == "bytes":
-			file_size *= 1e-6
+
+		if len(p) > 1:
+			file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
+			file_size = float(file_size_tmp[0])
+			if file_size_tmp[1] == "KB":
+				file_size *= 1e-3
+			elif file_size_tmp[1].lower() == "bytes":
+				file_size *= 1e-6
+		else:
+			file_size = math.nan
+
 		p = [i for i in p if "Version" not in i.text]
 		if len(p) > 2:
 			file_mod_date = parsedate(self.translate_date(p[2].get_text()), dayfirst=True)
 		else:
 			file_mod_date = datetime.fromisoformat('2000-01-01')
+
 		return file_ending, file_size, file_mod_date
 
 

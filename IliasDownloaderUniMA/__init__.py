@@ -289,7 +289,10 @@ class IliasDownloaderUniMA():
 			print(f"Scanning Folder...\n{file_path}\n{url}")
 			print("-------------------------------------------------")
 		for v in videos:
-			v_url = v.find('source')['src']
+			try:
+				v_url = v.find('source')['src']
+			except:
+				continue
 			el_caption = v.find('div', {'class': 'ilc_media_caption_MediaCaption'})
 			if el_caption != None:
 				el_name = el_caption.get_text()

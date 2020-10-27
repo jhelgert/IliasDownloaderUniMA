@@ -23,6 +23,7 @@ class IliasDownloaderUniMA():
 		"""
 		Constructs a new instance.
 		"""
+		self.current_semester_pattern = self.getCurrentSemester()
 		self.courses = []
 		self.to_scan = []
 		self.files = []
@@ -33,6 +34,14 @@ class IliasDownloaderUniMA():
 			'verbose' : False}
 		self.session = None
 		self.login_soup = None
+
+
+	def getCurrentSemester(self):
+		d = datetime.now()
+		if d.month in range(3, 9):
+			return rf"\((FSS|ST) {d.year}\)"
+		else:
+			return rf"\((HWS|WT) {d.year}\)"
 
 
 	def setParam(self, param, value):
@@ -102,7 +111,7 @@ class IliasDownloaderUniMA():
 			raise ConnectionError("Couldn't log into ILIAS. Make sure your provided uni-id and the password are correct.")
 
 
-	def addCourse(self, iliasid):
+	def addCourse(self, iliasid, course_name=None):
 		"""
 		Adds a course to the courses list.
 	
@@ -111,8 +120,9 @@ class IliasDownloaderUniMA():
 		"""
 
 		url = self.createIliasUrl(iliasid)
-		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		course_name = soup.select_one("#mainscrolldiv > ol > li:nth-child(3) > a").text
+		if not course_name:
+			soup = BeautifulSoup(self.session.get(url).content, "lxml")
+			course_name = soup.select_one("#mainscrolldiv > ol > li:nth-child(3) > a").text
 		if (course_name := re.sub(r"\[.*\] ", "", course_name)):
 			self.courses += [{'name' : course_name, 'url': url}]
 
@@ -127,6 +137,25 @@ class IliasDownloaderUniMA():
 
 		for iliasid in iliasids:
 			self.addCourse(iliasid)
+
+
+	def addAllSemesterCourses(self, semester_pattern=None, exclude_ids=None):
+		"""
+		Adds all current semester courses.
+		"""
+		if semester_pattern:
+			pattern = semester_pattern
+		else:
+			pattern = self.current_semester_pattern
+
+		# Add all courses matching the given pattern:
+		for course in self.login_soup.find_all("a", "il_ContainerItemTitle"):
+			if re.search(pattern, course.text):
+				url = course['href']
+				course_name = course.text
+				if (ilias_id := re.search(r"ref_id=(\d+)", url).group(1)):
+					if not exclude_ids or exclude_ids and ilias_id not in exclude_ids:
+						self.addCourse(ilias_id, course_name)
 
 
 	def _determineItemType(self, url):

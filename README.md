@@ -5,7 +5,7 @@ A simple python package to download files from https://ilias.uni-mannheim.de.
 
 ## Key features
 
-- Automatically synchronizes all files for each download. Only new or updated files will be downloaded.
+- Automatically synchronizes all files for each download. Only new or updated files and videos will be downloaded.
 - Uses the [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) package to accelerate the download.
 
 ## Install
@@ -26,8 +26,9 @@ inside the repo directory.
 
 ## Usage
 
-Besides the uni-id and the password, only the ref id is required to download
-the files for a course. In general, a simple download script looks like this:
+Starting from version 0.5.0, only your uni_id and the password is required.
+In general, a simple download script to download all files from the current
+semester looks like this:
 
 ```python
 from IliasDownloaderUniMA import IliasDownloaderUniMA
@@ -35,9 +36,43 @@ from IliasDownloaderUniMA import IliasDownloaderUniMA
 m = IliasDownloaderUniMA()
 m.setParam('download_path', '/path/where/you/want/your/files/')
 m.login('your_uni_id', 'your_password')
-m.addCourse(ilias_course1_ref_id)
-m.addCourse(ilias_course2_ref_id)
+m.addAllSemesterCourses()
 m.downloadAllFiles()
+```
+
+The method `addAllSemesterCourses()` adds all current semester's courses
+by default. It's possible to use an individual `semester_pattern` for
+the search by passing a regex pattern. Here are some examples:
+
+``` python
+# Add all courses from your ilias main page from year 2020:
+m.addAllSemesterCourses(semester_pattern=r"\([A-Z]{2,3} 2020\)")
+```
+
+``` python
+# Add all FSS/ST courses from your ilias main page:
+m.addAllSemesterCourses(semester_pattern=r"\((FSS|ST) \d{4}\)")
+```
+
+``` python
+# Add all HWS/WT courses from your ilias main page:
+m.addAllSemesterCourses(semester_pattern=r"\((HWS|WT) \d{4}\)")
+```
+
+``` python
+# Add all courses from your ilias main page. Even non-regular semester
+# courses like 'License Information (Student University of Mannheim)',
+# i.e. courses without a semester inside the course name:
+m.addAllSemesterCourses(semester_pattern=r"\(.*\)")
+```
+
+You can exclude courses by passing a list of the corresponding
+ilias ref ids you want to exclude:
+
+``` python
+# Add all courses on your ilias main page. Even non-regular semester
+# courses. Except the courses with the ref id 954265 or 965389.
+m.addAllSemesterCourses(semester_pattern=r"\(.*\)", exclude_ids=[954265, 965389])
 ```
 
 A more specific example:
@@ -48,8 +83,7 @@ from IliasDownloaderUniMA import IliasDownloaderUniMA
 m = IliasDownloaderUniMA()
 m.setParam('download_path', '/Users/jonathan/Desktop/')
 m.login('jhelgert', 'my_password')
-m.addCourse(954265)   # OPM 601 Supply Chain Management
-m.addCourse(965389)   # BE 511 Business Economics II
+m.addAllSemesterCourses(exclude_ids=[1020946])
 m.downloadAllFiles()
 ```
 
@@ -61,7 +95,6 @@ m.setParam('download_path', r'C:\Users\jonathan\Desktop\')
 ```
 
 
-
 ### Where to get the ilias_course_ref_id?
 
 ![](https://i.imgur.com/1MKl9un.png)
@@ -71,10 +104,11 @@ m.setParam('download_path', r'C:\Users\jonathan\Desktop\')
 The Parameters can be set by the `.setParam(param, value)` method, where
 `param` is one of the following parameters:
 
-- `num_scan_threads` number of threads used for scanning for files
+- `'num_scan_threads'` number of threads used for scanning for files
 inside the folders (default: 5).
-- `num_download_threads` number of threads used for download all files (default: 5).
-- `download_path` the path all the files will be downloaded to (default: the current working directory).
+- `'num_download_threads'` number of threads used for download all files (default: 5).
+- `'download_path'` the path all the files will be downloaded to (default: the current working directory).
+- `'verbose'` printing information while scanning the courses (default: `False`)
 
 
 ```python
@@ -85,8 +119,7 @@ m.setParam('download_path', '/Users/jonathan/Desktop/')
 m.setParam('num_scan_threads', 20)
 m.setParam('num_download_threads', 20)
 m.login('jhelgert', 'my_password')
-m.addCourse(954265)   # OPM 601 Supply Chain Management
-m.addCourse(965389)   # BE 511 Business Economics II
+m.addAllSemesterCourses()
 m.downloadAllFiles()
 ```
 

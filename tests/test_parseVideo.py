@@ -77,18 +77,18 @@ m = IliasDownloaderUniMA()
 # We ignore the video size for the test as it's not possible to test
 # the HEAD requests without being logged into ilias.
 
-def test_parseVideos_no_video():
+def test_no_video():
   soup = BeautifulSoup(v_no_video, "lxml")
   assert m.parseVideos(soup) == None
 
-def test_parseVideos_without_caption():
+def test_without_caption():
   soup = BeautifulSoup(v_without_caption, "lxml")
   v_name, v_size, v_mod_date, v_url = m.parseVideos(soup)
   assert v_name == 'HS20_EinfPoWi_Politische_Kultur_und_Sozialisation_A_komprimiert.m4v'
   assert v_mod_date == datetime.datetime.fromisoformat('2000-01-01')
   assert v_url == 'https://ilias.uni-mannheim.de/data/ILIAS/mobs/mm_1299655/HS20_EinfPoWi_Politische_Kultur_und_Sozialisation_A_komprimiert.m4v?il_wac_token=60e9a0575393b725438513fc1d2aadfba054221a&il_wac_ttl=3&il_wac_ts=1603624667'
 
-def test_parseVideos_with_caption():
+def test_with_caption():
   soup = BeautifulSoup(v_with_caption, "lxml")
   v_name, v_size, v_mod_date, v_url = m.parseVideos(soup)
   assert v_name == 'Session_02_DesignofFlowLinesPart1.mp4'

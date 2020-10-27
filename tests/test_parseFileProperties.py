@@ -111,22 +111,22 @@ fiveItemsVersionVerfuegbarkeit = """
 
 m = IliasDownloaderUniMA()
 
-def test_parseFileProperties_threeItems():
+def test_threeItems():
 	soup = BeautifulSoup(threeItems, "lxml")
 	assert m._parseFileProperties(soup) == ('.tar.gz', 0.2873, datetime.datetime(2020, 9, 17, 14, 59))
 
-def test_parseFileProperties_fourItemsVersion():
+def test_fourItemsVersion():
 	soup = BeautifulSoup(fourItemsVersion, "lxml")
 	assert m._parseFileProperties(soup) == ('.pdf', 0.9031, datetime.datetime(2020, 8, 31, 14, 57))
 
-def test_parseFileProperties_fourItemsVerfuegbarkeit():
+def test_fourItemsVerfuegbarkeit():
 	soup = BeautifulSoup(fourItemsVerfuegbarkeit, "lxml")
 	assert m._parseFileProperties(soup) == ('.pdf', 0.5008, datetime.datetime(2020, 9, 17, 14, 59))
 
-def test_parseFileProperties_fourItemsMissingFileExtension():
+def test_fourItemsMissingFileExtension():
 	soup = BeautifulSoup(fourItemsMissingFileExtension, "lxml")
 	assert m._parseFileProperties(soup) == ('', 0.000739, datetime.datetime(2020, 8, 31, 12, 31))
 
-def test_parseFileProperties_fiveItemsVersionVerfuegbarkeit():
+def test_fiveItemsVersionVerfuegbarkeit():
 	soup = BeautifulSoup(fiveItemsVersionVerfuegbarkeit, "lxml")
 	assert m._parseFileProperties(soup) == ('.pdf', 0.5008, datetime.datetime(2020, 9, 17, 14, 59))

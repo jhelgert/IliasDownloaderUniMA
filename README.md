@@ -40,9 +40,9 @@ m.addAllSemesterCourses()
 m.downloadAllFiles()
 ```
 
-The method `addAllSemesterCourses()` adds all current semester's courses
-by default. It's possible to use an individual `semester_pattern` for
-the search by passing a regex pattern. Here are some examples:
+The method `addAllSemesterCourses()` adds all courses from the current semester
+ by default. But it's possible to modify the search behaviour by passing a regex
+pattern for `semester_pattern`. Here are some examples:
 
 ``` python
 # Add all courses from your ilias main page from year 2020:
@@ -70,7 +70,7 @@ You can exclude courses by passing a list of the corresponding
 ilias ref ids you want to exclude:
 
 ``` python
-# Add all courses on your ilias main page. Even non-regular semester
+# Add all courses from your ilias main page. Even non-regular semester
 # courses. Except the courses with the ref id 954265 or 965389.
 m.addAllSemesterCourses(semester_pattern=r"\(.*\)", exclude_ids=[954265, 965389])
 ```
@@ -95,7 +95,7 @@ m.setParam('download_path', r'C:\Users\jonathan\Desktop\')
 ```
 
 
-### Where to get the ilias_course_ref_id?
+### Where do I get a course's ref id?
 
 ![](https://i.imgur.com/1MKl9un.png)
 
@@ -106,7 +106,7 @@ The Parameters can be set by the `.setParam(param, value)` method, where
 
 - `'num_scan_threads'` number of threads used for scanning for files
 inside the folders (default: 5).
-- `'num_download_threads'` number of threads used for download all files (default: 5).
+- `'num_download_threads'` number of threads used for downloading all files (default: 5).
 - `'download_path'` the path all the files will be downloaded to (default: the current working directory).
 - `'verbose'` printing information while scanning the courses (default: `False`)
 

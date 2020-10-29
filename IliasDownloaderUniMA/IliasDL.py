@@ -154,7 +154,7 @@ class IliasDownloaderUniMA():
 				url = course['href']
 				course_name = course.text
 				if (ilias_id := re.search(r"ref_id=(\d+)", url).group(1)):
-					if not exclude_ids or exclude_ids and ilias_id not in exclude_ids:
+					if not exclude_ids or ilias_id not in exclude_ids:
 						self.addCourse(ilias_id, course_name)
 
 

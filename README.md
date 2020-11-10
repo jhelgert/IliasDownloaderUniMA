@@ -3,10 +3,8 @@
 
 A simple python package to download files from https://ilias.uni-mannheim.de.
 
-## Key features
-
 - Automatically synchronizes all files for each download. Only new or updated files and videos will be downloaded.
-- Uses the [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) package to accelerate the download.
+- Uses the [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) package for scraping and the [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) package to accelerate the download.
 
 ## Install
 
@@ -26,7 +24,7 @@ inside the repo directory.
 
 ## Usage
 
-Starting from version 0.5.0, only your uni_id and the password is required.
+Starting from version 0.5.0, only your uni_id and your password is required.
 In general, a simple download script to download all files from the current
 semester looks like this:
 
@@ -66,7 +64,7 @@ m.addAllSemesterCourses(semester_pattern=r"\((HWS|WT) \d{4}\)")
 m.addAllSemesterCourses(semester_pattern=r"\(.*\)")
 ```
 
-You can exclude courses by passing a list of the corresponding
+You can also exclude courses by passing a list of the corresponding
 ilias ref ids you want to exclude:
 
 ``` python
@@ -95,7 +93,7 @@ m.setParam('download_path', r'C:\Users\jonathan\Desktop\')
 ```
 
 
-### Where do I get a course's ref id?
+### Where do I get the course ref id?
 
 ![](https://i.imgur.com/1MKl9un.png)
 
@@ -108,6 +106,7 @@ The Parameters can be set by the `.setParam(param, value)` method, where
 inside the folders (default: 5).
 - `'num_download_threads'` number of threads used for downloading all files (default: 5).
 - `'download_path'` the path all the files will be downloaded to (default: the current working directory).
+- `'tutor_mode'` downloads all submissions for each task unit once the deadline has expired (default: `False`)
 - `'verbose'` printing information while scanning the courses (default: `False`)
 
 
@@ -118,8 +117,66 @@ m = IliasDownloaderUniMA()
 m.setParam('download_path', '/Users/jonathan/Desktop/')
 m.setParam('num_scan_threads', 20)
 m.setParam('num_download_threads', 20)
+m.setParam('tutor_mode', True)
 m.login('jhelgert', 'my_password')
 m.addAllSemesterCourses()
+m.downloadAllFiles()
+```
+
+## Advanced Usage
+
+Since some lecturers don't use ILIAS, it's possible use an
+external scraper function via the `addExternalScraper(fun, *args)`
+method. Here `fun` is the external scraper function and `*args`
+are the corresponding variable number of arguments.
+Note that's mandatory to use `course_name` as first function
+argument for your scraper. Your external scraper is expected to
+return a list of dicts with keys
+
+``` python
+# 'course': <the course name>
+# 'type': 'file'
+# 'name': <name of the parsed file>
+# 'size': <file size (in mb) as float>
+# 'mod-date': <the modification date as datetime object>
+# 'url': <file url>
+# 'path': <path where you want to download the file>
+```
+
+Here's an example:
+
+``` python
+from IliasDownloaderUniMA import IliasDownloaderUniMA
+from urllib.parse import urljoin
+from bs4 import BeautifulSoup
+from dateparser import parse
+import requests
+
+def myExtScraper(course_name, url):
+	"""
+	Extracts all file links from the given url.
+	"""
+	files = []
+	file_extensions = (".pdf", ".zip", ".tar.gz", ".cc", ".hh", ".cpp", ".h")
+	soup = BeautifulSoup(requests.get(url).content, "lxml")
+	for link in [i for i in soup.find_all(href=True) if i['href'].endswith(file_extensions)]: 
+			file_url = urljoin(url, link['href'])
+			resp = requests.head(file_url)
+			files.append({
+					'course': course_name,
+					'type': 'file',
+					'name': file_url.split("/")[-1],
+					'size': 1e-6 * float(resp.headers['Content-Length']),
+					'mod-date': parse(resp.headers['Last-Modified']),
+					'url': file_url,
+					'path': course_name + '/'
+				})
+	return files
+
+m = IliasDownloaderUniMA()
+m.login("jhelgert", "my_password")
+m.addAllSemesterCourses()
+m.addExternalScraper(myExtScraper, "OOP for SC", "https://bit.ly/3kWi4tb")
 m.downloadAllFiles()
 ```
 

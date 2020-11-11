@@ -73,26 +73,6 @@ class IliasDownloaderUniMA():
 		+ "&cmdNode=vi&baseClass=ilrepositorygui"
 
 
-	def extractIdFromUrl(self, url):
-		"""
-		Extracts the iliasid from a given ilias url.
-
-		:param      url:  ilias url containing a ref id
-		:type       url:  str
-
-		:returns:	iliasid of given course or object
-		:rtype:     int
-
-		:raises:	ValueError:  when an url without a iliasid is given.
-		"""
-
-		match = re.search(r"ref_id=(\d+)", url)
-		if match == None:
-			raise ValueError("No iliasid in given URL")
-
-		return int(match.group(1))
-
-
 	def login(self, login_id, login_pw):
 		"""
 		create requests session and log into ilias.uni-mannheim.de
@@ -120,29 +100,6 @@ class IliasDownloaderUniMA():
 			raise ConnectionError("Couldn't log into ILIAS. Make sure your provided uni-id and the password are correct.")
 
 
-	def extractUserCourses(self):
-		"""
-		Extracts the users subscribed courses from the login_soup
-
-		:returns:   List of dicts, with keys name, url and iliasid
-		:rtype:     list
-		"""
-
-		courses = []
-
-		containers = self.login_soup.select("div.il_ContainerListItem")
-		for container in containers:
-			title_elem = container.select("a.il_ContainerItemTitle")[0]
-
-			course_name = self.cleanCourseName(title_elem.string)
-			iliasid = self.extractIdFromUrl(title_elem["href"])
-
-			url = self.createIliasUrl(iliasid)
-			courses += [{"name": course_name, "url": url, "iliasid": iliasid}]
-
-		return courses
-
-
 	def addCourse(self, iliasid):
 		"""
 		Adds a course to the courses list.
@@ -153,12 +110,9 @@ class IliasDownloaderUniMA():
 
 		url = self.createIliasUrl(iliasid)
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		breadcrumb = soup.find_all("ol", "breadcrumb")[0]
-		# Course name is part of course link
-		course_elem = breadcrumb.find_all("a", href=re.compile("ref_id=" + str(iliasid)))[0]
-
-		course_name = self.cleanCourseName(course_elem.get_text())
-		self.courses += [{'name': course_name, 'url': url, 'iliasid': iliasid }]
+		course_name = soup.find_all("ol", "breadcrumb")[0].find_all('li')[2].get_text()
+		course_name = re.sub(r"\[.*\] ", "", course_name)
+		self.courses += [{'name' : course_name, 'url': url}]
 
 
 	def addCourses(self, *iliasids):
@@ -171,44 +125,6 @@ class IliasDownloaderUniMA():
 
 		for iliasid in iliasids:
 			self.addCourse(iliasid)
-
-
-	def addAllUserCourses(self, excluded_ids=[]):
-		"""
-		Extracts the users subscribed courses and adds them to the course list.
-
-		:param      excluded_ids:  optional ilias ids to ignore
-		:type       excluded_ids:  list
-
-		:returns:   number of courses added
-		:rtype:     int
-		"""
-
-		num_added = 0
-		courses = self.extractUserCourses()
-
-		for course in courses:
-			iliasid = course["iliasid"]
-
-			if iliasid not in excluded_ids:
-				self.addCourse(iliasid)
-				num_added += 1
-
-		return num_added
-
-
-	def cleanCourseName(self, course_name):
-		"""
-		Cleans up a course name to remove unwanted data.
-
-		:param      course_name:  raw course_name(from login_soup, or request)
-		:type       course_name:  str
-
-		:returns:   clean course name
-		:rtype:     str
-		"""
-
-		return re.sub(r"\[.*\] ", "", course_name).strip()
 
 
 	def translate_date(self, datestr):
@@ -247,28 +163,21 @@ class IliasDownloaderUniMA():
 
 	def _parseFileProperties(self, bs_item):
 		p = [i for i in bs_item.find_all('span', 'il_ItemProperty') if len(i.text) > 0]
-
 		if len(p[0].text.split()) > 1:
 			file_ending = ""
 		else:
 			file_ending = "." + p[0].get_text().split()[0]
-
-		if len(p) > 1:
-			file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
-			file_size = float(file_size_tmp[0])
-			if file_size_tmp[1] == "KB":
-				file_size *= 1e-3
-			elif file_size_tmp[1].lower() == "bytes":
-				file_size *= 1e-6
-		else:
-			file_size = math.nan
-
+		file_size_tmp = p[1].get_text().replace(".","").replace(",", ".").split()
+		file_size = float(file_size_tmp[0])
+		if file_size_tmp[1] == "KB":
+			file_size *= 1e-3
+		elif file_size_tmp[1].lower() == "bytes":
+			file_size *= 1e-6
 		p = [i for i in p if "Version" not in i.text]
 		if len(p) > 2:
 			file_mod_date = parsedate(self.translate_date(p[2].get_text()), dayfirst=True)
 		else:
 			file_mod_date = datetime.fromisoformat('2000-01-01')
-
 		return file_ending, file_size, file_mod_date
 
 
@@ -289,22 +198,8 @@ class IliasDownloaderUniMA():
 			print(f"Scanning Folder...\n{file_path}\n{url}")
 			print("-------------------------------------------------")
 		for v in videos:
-			try:
-				v_url = v.find('source')['src']
-			except:
-				continue
-			el_caption = v.find('div', {'class': 'ilc_media_caption_MediaCaption'})
-			if el_caption != None:
-				el_name = el_caption.get_text()
-			else:
-				# Get lowest folder
-				el_name = os.path.basename(v_url)
-				# Remove url arguments
-				el_name = el_name.split("?")[0]
-				# Remove stock extension
-				el_name = os.path.splitext(el_name)[0]
-
-			el_url = urljoin(self.base_url, v_url)
+			el_url = urljoin(self.base_url, v.find('source')['src'])
+			el_name = v.find('div', {'class': 'ilc_media_caption_MediaCaption'}).get_text()
 			el_type = 'file'
 			file_ending = v.find('source')['type'].split("/")[-1]
 			file_size = math.nan

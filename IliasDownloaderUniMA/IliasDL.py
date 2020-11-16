@@ -148,25 +148,19 @@ class IliasDownloaderUniMA():
 			self.addCourse(iliasid)
 
 
-	def addAllSemesterCourses(self, semester_pattern=None, exclude_ids=None):
+	def addAllSemesterCourses(self, semester_pattern=None, excluded_ids=None):
 		"""
-		Adds all current semester courses.
+		Extracts the users subscribed courses of the specified semester 
+		and adds them to the course list.
+
+		:param      semester_pattern:  semester or regex for semester
+		:type       semester_pattern:  string
+		:param      excluded_ids:  optional ilias ids to ignore
+		:type       excluded_ids:  list
+
+		:returns:   number of courses added
+		:rtype:     int
 		"""
-		if semester_pattern:
-			pattern = semester_pattern
-		else:
-			pattern = self.current_semester_pattern
-
-		# Add all courses matching the given pattern:
-		for course in self.login_soup.find_all("a", "il_ContainerItemTitle"):
-			if re.search(pattern, course.text):
-				url = course['href']
-				course_name = course.text
-				if (ilias_id := re.search(r"ref_id=(\d+)", url).group(1)):
-					if not exclude_ids or ilias_id not in exclude_ids:
-						self.addCourse(ilias_id, course_name)
-
-
 	def _determineItemType(self, url):
 		if "target=file" in url:
 			return "file"

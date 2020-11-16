@@ -125,7 +125,7 @@ m.downloadAllFiles()
 
 ## Advanced Usage
 
-Since some lecturers don't use ILIAS, it's possible use an
+Since some lecturers don't use ILIAS, it's possible to use an
 external scraper function via the `addExternalScraper(fun, *args)`
 method. Here `fun` is the external scraper function and `*args`
 are the corresponding variable number of arguments.

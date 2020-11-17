@@ -25,16 +25,16 @@ regular_course_st = """
 
 def test_no_regular_course():
 	m = IliasDownloaderUniMA()
-	m.current_semester_pattern = rf"\((HWS|WT) 2020\)"
+	semester_pattern = rf"\((HWS|WT) 2020\)"
 	m.login_soup = BeautifulSoup(no_regular_course, "lxml")
-	m.addAllSemesterCourses()
+	m.addAllSemesterCourses(semester_pattern)
 	assert len(m.courses) == 0
 
 def test_a_regular_course_hws():
 	m = IliasDownloaderUniMA()
-	m.current_semester_pattern = rf"\((HWS|WT) 2020\)"
+	semester_pattern = rf"\((HWS|WT) 2020\)"
 	m.login_soup = BeautifulSoup(regular_course_hws, "lxml")
-	m.addAllSemesterCourses()
+	m.addAllSemesterCourses(semester_pattern)
 	assert len(m.courses) == 1
 	assert m.courses[0]['name'] == "GPU Programming (HWS 2020)"
 	assert m.courses[0]['url'] == m.createIliasUrl(1020946)
@@ -42,9 +42,9 @@ def test_a_regular_course_hws():
 
 def test_a_regular_course_wt():
 	m = IliasDownloaderUniMA()
-	m.current_semester_pattern = rf"\((HWS|WT) 2020\)"
+	semester_pattern = rf"\((HWS|WT) 2020\)"
 	m.login_soup = BeautifulSoup(regular_course_wt, "lxml")
-	m.addAllSemesterCourses()
+	m.addAllSemesterCourses(semester_pattern)
 	assert len(m.courses) == 1
 	assert m.courses[0]['name'] == "OPM 561 Production Management: Lean Approaches and Variability (WT 2020)"
 	assert m.courses[0]['url'] == m.createIliasUrl(1022636)
@@ -52,9 +52,9 @@ def test_a_regular_course_wt():
 
 def test_a_regular_course_fss():
 	m = IliasDownloaderUniMA()
-	m.current_semester_pattern = rf"\((FSS|ST) 2020\)"
+	semester_pattern = rf"\((FSS|ST) 2020\)"
 	m.login_soup = BeautifulSoup(regular_course_fss, "lxml")
-	m.addAllSemesterCourses()
+	m.addAllSemesterCourses(semester_pattern)
 	assert len(m.courses) == 1
 	assert m.courses[0]['name'] == "BE 511 Business Economics II (FSS 2020)"
 	assert m.courses[0]['url'] == m.createIliasUrl(965388)
@@ -62,9 +62,9 @@ def test_a_regular_course_fss():
 
 def test_a_regular_course_st():
 	m = IliasDownloaderUniMA()
-	m.current_semester_pattern = rf"\((FSS|ST) 2020\)"
+	semester_pattern = rf"\((FSS|ST) 2020\)"
 	m.login_soup = BeautifulSoup(regular_course_st, "lxml")
-	m.addAllSemesterCourses()
+	m.addAllSemesterCourses(semester_pattern)
 	assert len(m.courses) == 1
 	assert m.courses[0]['name'] == "OPM 601 Supply Chain Management (ST 2020)"
 	assert m.courses[0]['url'] == m.createIliasUrl(862822)

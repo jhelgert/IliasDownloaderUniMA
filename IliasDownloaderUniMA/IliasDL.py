@@ -20,6 +20,15 @@ class IliasDownloaderUniMA():
 	base_url = "https://ilias.uni-mannheim.de/"
 	desktop_url = "https://ilias.uni-mannheim.de/ilias.php?baseClass=ilPersonalDesktopGUI"
 
+	# Semester constants
+	SS_GERMAN  = "FSS"
+	SS_ENGLISH = "ST"
+	WS_GERMAN  = "HWS"
+	WS_ENGLISH = "WT"
+	SS_REGEX   = SS_GERMAN + "|" + SS_ENGLISH
+	WS_REGEX   = WS_GERMAN + "|" + WS_ENGLISH
+
+
 	def __init__(self):
 		"""
 		Constructs a new instance.

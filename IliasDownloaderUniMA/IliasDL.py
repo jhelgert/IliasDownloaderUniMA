@@ -45,7 +45,7 @@ class IliasDownloaderUniMA():
 
 	def getCurrentSemester(self):
 		d = datetime.now()
-		if d.month in range(3, 9):
+		if d.month in range(2, 8):
 			return rf"\((FSS|ST) {d.year}\)"
 		else:
 			return rf"\((HWS|WT) {d.year}\)"

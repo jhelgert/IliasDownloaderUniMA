@@ -18,11 +18,14 @@ class IliasDownloaderUniMA():
 	"""
 	
 	base_url = "https://ilias.uni-mannheim.de/"
+	desktop_url = "https://ilias.uni-mannheim.de/ilias.php?baseClass=ilPersonalDesktopGUI"
+
 
 	def __init__(self):
 		"""
 		Constructs a new instance.
 		"""
+		self.current_semester_pattern = self.getCurrentSemester()
 		self.courses = []
 		self.to_scan = []
 		self.files = []
@@ -30,9 +33,22 @@ class IliasDownloaderUniMA():
 			'num_scan_threads' : 5, 
 			'num_download_threads': 5, 
 			'download_path': os.getcwd(),
-			'verbose' : False}
+			'tutor_mode': False,
+			'verbose' : False
+		}
 		self.session = None
 		self.login_soup = None
+		self.background_task_files = []
+		self.background_tasks_to_clean = []
+		self.external_scrapers = []
+
+
+	def getCurrentSemester(self):
+		d = datetime.now()
+		if d.month in range(2, 8):
+			return rf"\((FSS|ST) {d.year}\)"
+		else:
+			return rf"\((HWS|WT) {d.year}\)"
 
 
 	def setParam(self, param, value):
@@ -52,6 +68,9 @@ class IliasDownloaderUniMA():
 			if os.path.isdir(value):
 				self.params[param] = value
 		if param == 'verbose':
+			if type(value) is bool:
+				self.params[param] = value
+		if param == 'tutor_mode':
 			if type(value) is bool:
 				self.params[param] = value
 
@@ -102,7 +121,7 @@ class IliasDownloaderUniMA():
 			raise ConnectionError("Couldn't log into ILIAS. Make sure your provided uni-id and the password are correct.")
 
 
-	def addCourse(self, iliasid):
+	def addCourse(self, iliasid, course_name=None):
 		"""
 		Adds a course to the courses list.
 	
@@ -111,8 +130,9 @@ class IliasDownloaderUniMA():
 		"""
 
 		url = self.createIliasUrl(iliasid)
-		soup = BeautifulSoup(self.session.get(url).content, "lxml")
-		course_name = soup.select_one("#mainscrolldiv > ol > li:nth-child(3) > a").text
+		if not course_name:
+			soup = BeautifulSoup(self.session.get(url).content, "lxml")
+			course_name = soup.select_one("#mainscrolldiv > ol > li:nth-child(3) > a").text
 		if (course_name := re.sub(r"\[.*\] ", "", course_name)):
 			self.courses += [{'name' : course_name, 'url': url}]
 
@@ -127,6 +147,37 @@ class IliasDownloaderUniMA():
 
 		for iliasid in iliasids:
 			self.addCourse(iliasid)
+
+
+	def addAllSemesterCourses(self, semester_pattern=None, exclude_ids=[]):
+		"""
+		Extracts the users subscribed courses of the specified semester 
+		and adds them to the course list.
+
+		:param      semester_pattern:  semester or regex for semester
+		:type       semester_pattern:  string
+		:param      exclude_ids:  optional ilias ids to ignore
+		:type       exclude_ids:  list
+		"""
+
+		if semester_pattern is None:
+			semester_pattern = self.current_semester_pattern
+
+		# Performance gain in case of many courses
+		semester_compiled = re.compile(semester_pattern)
+		extract_compiled = re.compile(r"ref_id=(\d+)")
+
+		for course in self.login_soup.find_all("a", "il_ContainerItemTitle"):
+			course_name = course.text
+
+			if semester_compiled.search(course_name):
+				url = course["href"]
+
+				if (match := extract_compiled.search(url)):
+					iliasid = int(match.group(1))
+
+					if iliasid not in exclude_ids:
+						self.addCourse(iliasid, course_name)
 
 
 	def _determineItemType(self, url):
@@ -186,7 +237,7 @@ class IliasDownloaderUniMA():
 
 
 	def parseVideos(self, mc_soup):
-		# Checks if there's video inside the mediacontainer:
+		# Checks if there's a video inside the mediacontainer:
 		if (vsoup := mc_soup.find('video', {"class": "ilPageVideo"})):
 			if (v_src := vsoup.find('source')['src']):
 				v_url = urljoin(self.base_url, v_src)
@@ -297,6 +348,7 @@ class IliasDownloaderUniMA():
 		soup = BeautifulSoup(self.session.get(url).content, "lxml")
 		task_unit_name = soup.find("a", {"class" : "ilAccAnchor"}).text  
 		file_path = course_name + "/" + "Aufgaben/" + task_unit_name + "/"
+		file_path = file_path.replace(":", " - ")
 		task_items = soup.find("div", {"id":"infoscreen_section_1"}).find_all("div", "form-group")
 		if self.params['verbose']:
 			print(f"Scanning TaskUnit...\n{file_path}\n{url}")
@@ -316,6 +368,85 @@ class IliasDownloaderUniMA():
 				'url': el_url,
 				'path': file_path
 			}]
+		# Now scan the submissions
+		if self.params['tutor_mode']:
+			self.scanTaskUnitSubmissions(course_name, file_path, soup)
+
+
+	def scanTaskUnitSubmissions(self, course_name, file_path, soup):
+
+		form_data = {
+			'user_login': '',
+			'cmd[downloadSubmissions]': 'Alle Abgaben herunterladen'
+		}
+
+		# Deadline finished?
+		deadline = soup.select_one('#infoscreen_section_2 > div:nth-child(2) > div.il_InfoScreenPropertyValue.col-xs-9').text
+		if (deadline_time := parsedate(deadline)) < datetime.now():
+			# Access to the submissions?
+			if (tab_grades := soup.select_one('#tab_grades > a')):
+				tab_grades_url = urljoin(self.base_url, tab_grades['href'])
+				submissions_soup = BeautifulSoup(self.session.get(tab_grades_url).content, "lxml")
+				form_action_url = urljoin(self.base_url, submissions_soup.find('form', {'id': 'ilToolbar'})['action'])
+				# Post form data
+				r = self.session.post(form_action_url, data=form_data)
+				el_name = submissions_soup.select_one('#il_mhead_t_focus').text.replace("\n", "") + ".zip"
+				# Add backgroundtask file to list, we parse the download links
+				# later from the background tasks tab from the page header
+				self.background_task_files += [{
+						'course': course_name, 
+						'type': 'file',
+						'name': el_name,
+						'size': math.nan,
+						'mod-date': deadline_time,
+						#'url': dl_url,
+						'path': file_path
+					}]
+
+
+	def searchBackgroundTaskFile(self, el_name):
+		#
+		# TO DO: Cleanup!!!
+		#
+		for idx, f in enumerate(self.background_task_files):
+			f["name"] = f["name"].encode()
+			f["name"] = f["name"].replace('ü'.encode(), b'ue')
+			f["name"] = f["name"].replace('Ü'.encode(), b'Ue')
+			f["name"] = f["name"].replace('ä'.encode(), b'ae')
+			f["name"] = f["name"].replace('Ä'.encode(), b'Ae')
+			f["name"] = f["name"].replace('ö'.encode(), b'oe')
+			f["name"] = f["name"].replace('Ö'.encode(), b'Oe')
+			f["name"] = f["name"].replace('ß'.encode(), b'ss')
+			f["name"] = f["name"].decode('utf-8')
+			if f["name"] == el_name:
+				return self.background_task_files.pop(idx)
+
+
+	def parseBackgroundTasks(self):
+		# time.sleep(5) # Not really needed?
+		# Reload ilias main page to parse the background tasks bar on the top
+		desktop_soup = BeautifulSoup(self.session.get(self.desktop_url).content, "lxml") 
+		tasks_tab_url = urljoin(self.base_url, desktop_soup.select_one('#mm_tb_background_tasks')['refresh-uri'])
+		tasks_tab_soup = BeautifulSoup(self.session.get(tasks_tab_url).content, "lxml")
+		# Extract the items
+		for i in tasks_tab_soup.find_all('div', {'class': 'il-item-task'}):
+			# Extract the download url and the remove url
+			dl, rm = i.find_all('button', {'class': 'btn btn-default'})
+			dl_url = urljoin(self.base_url, dl['data-action'])
+			rm_url = urljoin(self.base_url, rm['data-action'])
+			self.background_tasks_to_clean.append(rm_url)
+			# Add file to downloads
+			el_name = i.find('div', {'class' : 'il-item-task-title'}).text.replace("\n", "") + ".zip"
+			if (bt := self.searchBackgroundTaskFile(el_name)): 
+				self.files += [{
+					'course': bt['course'], 
+					'type': 'file',
+					'name': el_name,
+					'size': bt['size'],
+					'mod-date': bt['mod-date'],
+					'url': dl_url,
+					'path': bt['path']
+				}]
 
 
 	def scanLernmaterial(self, course_name, url_to_scan):
@@ -346,6 +477,9 @@ class IliasDownloaderUniMA():
 			for r in results:
 				pass
 
+	def addExternalScraper(self, scraper, *args):
+		self.external_scrapers.append({'fun' : scraper, 'args': args})
+
 
 	def scanCourses(self):
 		"""
@@ -360,6 +494,10 @@ class IliasDownloaderUniMA():
 			}]
 			print(f"Scanning {course['name']} with {self.params['num_scan_threads']} Threads....")
 			self.searchForFiles(course['name'])
+		# External Scrapers
+		for d in self.external_scrapers:
+			print(f"Scanning {d['args'][0]} with the external Scraper....")
+			self.files += d['fun'](*d['args'])
 			
 			
 	def downloadFile(self, file):
@@ -398,6 +536,9 @@ class IliasDownloaderUniMA():
 
 		# Scan all files
 		self.scanCourses()
+		if self.params['tutor_mode']:
+			# Parse the background tasks, i.e. add them to the download files
+			self.parseBackgroundTasks()
 		# Check the file paths
 		paths = list(set([os.path.join(self.params['download_path'],f['path']) for f in self.files]))
 		for p in paths:
@@ -406,3 +547,9 @@ class IliasDownloaderUniMA():
 		# Download all files
 		for r in ThreadPool(self.params['num_download_threads']).imap_unordered(self.downloadFile, self.files):
 			pass
+		# Clean the background tasks tab
+		if self.params['tutor_mode']:
+			if self.params['verbose']:
+				print("Tutor mode. Cleaning the background tasks...")
+			for r in ThreadPool(self.params['num_download_threads']).imap_unordered(lambda x: self.session.get(x), self.background_tasks_to_clean):
+				pass

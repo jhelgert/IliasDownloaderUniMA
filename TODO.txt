@@ -1,0 +1,3 @@
+- Tests für parseBackgroundTasks
+- Tests für searchBackgroundTaskFile
+- Tests für scanTaskUnit

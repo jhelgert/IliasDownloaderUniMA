@@ -169,7 +169,7 @@ class IliasDownloaderUniMA():
 		"""
 
 		if semester_pattern is None:
-			semester_pattern = self.getCurrentSemester()
+			semester_pattern = self.current_semester_pattern
 
 		# Performance gain in case of many courses
 		semester_compiled = re.compile(semester_pattern)

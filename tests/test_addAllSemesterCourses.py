@@ -100,4 +100,4 @@ def test_own_pattern_with_excluded_id():
 	m = IliasDownloaderUniMA()
 	m.login_soup = BeautifulSoup(no_regular_course + regular_course_hws + regular_course_wt + regular_course_fss + regular_course_st, "lxml")
 	m.addAllSemesterCourses(semester_pattern=r"\(([A-Z]{2,3}) 2020\)", exclude_ids=[862822])
-	assert len(m.courses) == 4
+	assert len(m.courses) == 3

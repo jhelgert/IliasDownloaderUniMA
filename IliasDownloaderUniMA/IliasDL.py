@@ -172,16 +172,16 @@ class IliasDownloaderUniMA():
 			semester_pattern = self.getCurrentSemester()
 
 		# Performance gain in case of many courses
-		compiled_pattern = re.compile(semester_pattern)
-		extract_pattern = re.compile(r"ref_id=(\d+)")
+		semester_compiled = re.compile(semester_pattern)
+		extract_compiled = re.compile(r"ref_id=(\d+)")
 
-		for course in self.login_soup.find_all("a", "il_ContainerListItemTitle"):
+		for course in self.login_soup.find_all("a", "il_ContainerItemTitle"):
 			course_name = course.text
 
-			if compiled_pattern.search(course_name):
+			if semester_compiled.search(course_name):
 				url = course["href"]
 
-				if (match := extract_pattern.search(url)):
+				if (match := extract_compiled.search(url)):
 					iliasid = int(match.group(1))
 
 					if iliasid not in exclude_ids:

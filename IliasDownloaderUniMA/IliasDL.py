@@ -20,6 +20,7 @@ class IliasDownloaderUniMA():
 	base_url = "https://ilias.uni-mannheim.de/"
 	desktop_url = "https://ilias.uni-mannheim.de/ilias.php?baseClass=ilPersonalDesktopGUI"
 
+
 	def __init__(self):
 		"""
 		Constructs a new instance.
@@ -44,7 +45,7 @@ class IliasDownloaderUniMA():
 
 	def getCurrentSemester(self):
 		d = datetime.now()
-		if d.month in range(3, 9):
+		if d.month in range(2, 8):
 			return rf"\((FSS|ST) {d.year}\)"
 		else:
 			return rf"\((HWS|WT) {d.year}\)"
@@ -148,23 +149,35 @@ class IliasDownloaderUniMA():
 			self.addCourse(iliasid)
 
 
-	def addAllSemesterCourses(self, semester_pattern=None, exclude_ids=None):
+	def addAllSemesterCourses(self, semester_pattern=None, exclude_ids=[]):
 		"""
-		Adds all current semester courses.
-		"""
-		if semester_pattern:
-			pattern = semester_pattern
-		else:
-			pattern = self.current_semester_pattern
+		Extracts the users subscribed courses of the specified semester 
+		and adds them to the course list.
 
-		# Add all courses matching the given pattern:
+		:param      semester_pattern:  semester or regex for semester
+		:type       semester_pattern:  string
+		:param      exclude_ids:  optional ilias ids to ignore
+		:type       exclude_ids:  list
+		"""
+
+		if semester_pattern is None:
+			semester_pattern = self.current_semester_pattern
+
+		# Performance gain in case of many courses
+		semester_compiled = re.compile(semester_pattern)
+		extract_compiled = re.compile(r"ref_id=(\d+)")
+
 		for course in self.login_soup.find_all("a", "il_ContainerItemTitle"):
-			if re.search(pattern, course.text):
-				url = course['href']
-				course_name = course.text
-				if (ilias_id := re.search(r"ref_id=(\d+)", url).group(1)):
-					if not exclude_ids or ilias_id not in exclude_ids:
-						self.addCourse(ilias_id, course_name)
+			course_name = course.text
+
+			if semester_compiled.search(course_name):
+				url = course["href"]
+
+				if (match := extract_compiled.search(url)):
+					iliasid = int(match.group(1))
+
+					if iliasid not in exclude_ids:
+						self.addCourse(iliasid, course_name)
 
 
 	def _determineItemType(self, url):

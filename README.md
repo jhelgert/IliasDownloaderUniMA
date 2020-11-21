@@ -160,17 +160,17 @@ def myExtScraper(course_name, url):
 	file_extensions = (".pdf", ".zip", ".tar.gz", ".cc", ".hh", ".cpp", ".h")
 	soup = BeautifulSoup(requests.get(url).content, "lxml")
 	for link in [i for i in soup.find_all(href=True) if i['href'].endswith(file_extensions)]: 
-			file_url = urljoin(url, link['href'])
-			resp = requests.head(file_url)
-			files.append({
-					'course': course_name,
-					'type': 'file',
-					'name': file_url.split("/")[-1],
-					'size': 1e-6 * float(resp.headers['Content-Length']),
-					'mod-date': parse(resp.headers['Last-Modified']),
-					'url': file_url,
-					'path': course_name + '/'
-				})
+		file_url = urljoin(url, link['href'])
+		resp = requests.head(file_url)
+		files.append({
+			'course': course_name,
+			'type': 'file',
+			'name': file_url.split("/")[-1],
+			'size': 1e-6 * float(resp.headers['Content-Length']),
+			'mod-date': parse(resp.headers['Last-Modified']),
+			'url': file_url,
+			'path': course_name + '/'
+		})
 	return files
 
 m = IliasDownloaderUniMA()

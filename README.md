@@ -176,7 +176,7 @@ def myExtScraper(course_name, url):
 m = IliasDownloaderUniMA()
 m.login("jhelgert", "my_password")
 m.addAllSemesterCourses()
-m.addExternalScraper(myExtScraper, "OOP for SC", "https://bit.ly/3kWi4tb")
+m.addExternalScraper(myExtScraper, "OOP for SC", "https://conan.iwr.uni-heidelberg.de/teaching/oopfsc_ws2020/")
 m.downloadAllFiles()
 ```
 

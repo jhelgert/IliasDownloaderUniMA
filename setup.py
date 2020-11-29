@@ -15,10 +15,10 @@ setup(
 	long_description_content_type = "text/markdown",
 	python_requires = '>=3.8',
 	classifiers = [
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
+        	"Programming Language :: Python :: 3.8",
+        	"License :: OSI Approved :: MIT License",
+        	"Operating System :: OS Independent",
+    	],
 	install_requires = [
 		"dateparser",
 		"bs4",

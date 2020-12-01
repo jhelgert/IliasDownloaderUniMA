@@ -1,10 +1,10 @@
 
 # Ilias Downloader UniMA
 
-![example branch parameter](https://img.shields.io/github/workflow/status/jhelgert/iliasDownloaderUniMA/Tests/master.svg)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/iliasdownloaderunima.svg)](https://img.shields.io/pypi/pyversions/iliasdownloaderunima)
-[![PyPI version](https://img.shields.io/pypi/v/iliasdownloaderunima.svg)](https://img.shields.io/pypi/dm/iliasdownloaderunima)
-[![PyPI downloads total](https://img.shields.io/pypi/dm/iliasdownloaderunima.svg)](https://img.shields.io/pypi/dm/iliasdownloaderunima)
+![example branch parameter](https://img.shields.io/github/workflow/status/jhelgert/iliasDownloaderUniMA/Tests/master)
+![PyPI pyversions](https://img.shields.io/pypi/pyversions/iliasdownloaderunima)
+![PyPI version](https://img.shields.io/pypi/v/iliasdownloaderunima)
+![PyPI downloads total](https://img.shields.io/pypi/dm/iliasdownloaderunima)
 
 A simple python package to download files from https://ilias.uni-mannheim.de.
 

@@ -79,7 +79,7 @@ m = IliasDownloaderUniMA()
 
 def test_no_video():
   soup = BeautifulSoup(v_no_video, "lxml")
-  assert m.parseVideos(soup) == None
+  assert m.parseVideos(soup) is None
 
 def test_without_caption():
   soup = BeautifulSoup(v_without_caption, "lxml")

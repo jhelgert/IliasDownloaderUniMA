@@ -1,6 +1,7 @@
 
 # Ilias Downloader UniMA
 
+![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/jhelgert/IliasDownloaderUniMA/master)
 ![example branch parameter](https://img.shields.io/github/workflow/status/jhelgert/iliasDownloaderUniMA/Tests/master)
 ![PyPI pyversions](https://img.shields.io/pypi/pyversions/iliasdownloaderunima)
 ![PyPI version](https://img.shields.io/pypi/v/iliasdownloaderunima)

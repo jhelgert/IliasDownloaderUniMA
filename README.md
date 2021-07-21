@@ -31,7 +31,7 @@ inside the repo directory.
 ## Usage
 
 Starting from version 0.5.0, only your uni_id and your password is required.
-In general, a simple download script to download all files from the current
+In general, a simple download script to download all files of the current
 semester looks like this:
 
 ```python
@@ -44,8 +44,8 @@ m.addAllSemesterCourses()
 m.downloadAllFiles()
 ```
 
-The method `addAllSemesterCourses()` adds all courses from the current semester
- by default. But it's possible to modify the search behaviour by passing a regex
+The method `addAllSemesterCourses()` adds all courses of the current semester
+ by default. However, it's possible to modify the search behaviour by passing a regex
 pattern for `semester_pattern`. Here are some examples:
 
 ``` python
@@ -189,4 +189,4 @@ m.downloadAllFiles()
 
 ## Contribute
 
-Feel free to contribute! :)
+Feel free to contribute in any form! Feature requests, Bug reports or PRs are more than welcome.

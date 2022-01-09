@@ -7,7 +7,7 @@
 ![PyPI version](https://img.shields.io/pypi/v/iliasdownloaderunima)
 ![PyPI downloads total](https://img.shields.io/pypi/dm/iliasdownloaderunima)
 
-A simple python package to download files from https://ilias.uni-mannheim.de.
+A simple python package for downloading files from https://ilias.uni-mannheim.de.
 
 - Automatically synchronizes all files for each download. Only new or updated files and videos will be downloaded.
 - Uses the [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) package for scraping and the [multiprocessing](https://docs.python.org/3/library/multiprocessing.html) package to accelerate the download.
